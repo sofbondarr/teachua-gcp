@@ -19,9 +19,8 @@ pipeline {
       steps {
         dir('frontend') {
       sh '''
-        export DOCKER_BUILDKIT=0
-        docker build --progress=plain \
-          -t ${IMAGE_NAME}:${TAG} .
+        docker build -t ${IMAGE_NAME}:${TAG} . \
+          2>&1 | tee docker-build.log
       '''
     }
       }
