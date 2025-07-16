@@ -18,11 +18,8 @@ pipeline {
     stage('Build') {
       steps {
         dir('frontend') {
-      sh '''
-        docker build -t ${IMAGE_NAME}:${TAG} . \
-          2>&1 | tee docker-build.log
-      '''
-    }
+          sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+        }
       }
     }
 
