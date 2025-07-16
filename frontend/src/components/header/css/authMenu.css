@@ -1,7 +1,7 @@
 .avatarIfLogin {
-    background: #FA8C16;
+    background: #fde9d3;
 }
-
+/* #FA8C16; */
 .avatarIfNotLogin {
     background: 0;
     margin-top: -8px;
