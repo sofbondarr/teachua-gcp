@@ -1,0 +1,8 @@
+# ansible/roles/docker_setup/tasks/main.yml
+---
+- name: Установить Docker Engine
+  include_tasks: install_docker.yml
+
+- name: Установить AWS CLI v2
+  include_tasks: install_aws_cli.yml
+

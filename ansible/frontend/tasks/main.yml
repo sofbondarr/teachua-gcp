@@ -1,0 +1,64 @@
+- name: Rebuild frontend assets
+  command: npm run build
+  args:
+    chdir: "{{ sources_local_dir }}"
+  become_user: "{{ local_user }}"
+  delegate_to: localhost
+
+- name: Install Nginx on remote if not present
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Ensure remote deploy directory exists
+  file:
+    path: "{{ deploy_dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: yes
+
+- name: Configure Nginx to serve frontend from template
+  template:
+    src: templates/frontend.conf.j2
+    dest: /etc/nginx/sites-available/frontend.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart frontend service
+  become: yes
+
+- name: Enable frontend site
+  file:
+    src: /etc/nginx/sites-available/frontend.conf
+    dest: /etc/nginx/sites-enabled/frontend.conf
+    state: link
+    force: yes
+  become: yes
+
+- name: Disable default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+
+- name: Sync built assets to remote using rsync over sudo
+  synchronize:
+    src: "{{ build_output_dir }}/"
+    dest: "{{ deploy_dir }}"
+    delete: yes
+    rsync_path: "sudo rsync"
+    rsync_opts:
+      - "--chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r"
+  become_user: "{{ local_user }}"
+  delegate_to: localhost
+
+- name: Reload Nginx to apply new frontend
+  service:
+    name: "{{ service_name }}"
+    state: reloaded
+  become: yes
+  when: service_name == 'nginx'

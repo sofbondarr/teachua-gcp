@@ -1,0 +1,36 @@
+- name: Load .env into env_lines
+  set_fact:
+    env_lines: "{{ lookup('file', env_file).splitlines() }}"
+
+- name: Find the public_keys assignment line
+  set_fact:
+    public_keys_line: >-
+      {{ env_lines
+         | select('search','^public_keys=')
+         | list
+         | first }}
+
+- name: Extract the JSON blob (remove `public_keys=` prefix)
+  set_fact:
+    public_keys_raw: "{{ public_keys_line.split('=',1)[1] }}"
+
+- name: Strip surrounding quotes
+  set_fact:
+    public_keys_json: "{{ public_keys_raw[1:-1] }}"
+
+# <-- DROP the `from_json` step here. `public_keys_json` is already a list.
+
+- name: Ensure ~/.ssh directory exists
+  file:
+    path: "/home/{{ ssh_user }}/.ssh"
+    state: directory
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+    mode: '0700'
+
+- name: Add each public key to authorized_keys
+  authorized_key:
+    user: "{{ ssh_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ public_keys_json }}"

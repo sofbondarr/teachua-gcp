@@ -1,0 +1,43 @@
+- hosts: frontend
+  tags: ['frontend']
+  become: yes
+  roles:
+    - frontend
+
+- hosts: backend
+  become: yes
+  tags: ['backend']
+  roles:
+    - backend
+
+- hosts: localhost
+  become: yes
+  tags: ['db']
+  gather_facts: no
+  roles:
+    - database
+ 
+- hosts: localhost
+  become: yes
+  gather_facts: no
+  tags: ['dump']
+  roles:
+    - copy_dump
+
+- hosts: proxy
+  become: yes
+  tags: ['proxy']
+  roles:
+    - proxy
+
+- hosts: keys
+  become: yes
+  tags: ['keys']
+  roles:
+    - keys
+
+- hosts: jenkins_controller
+  become: yes
+  tags: ['jenkins_controller']
+  roles:
+    - jenkins_controller

@@ -1,0 +1,7 @@
+# Локальна назва дампу всередині roles/copy_dump/files/
+dump_src: dump_file.dump
+
+# Куди у S3 вантажимо
+s3_bucket: myapp-db-dumps-default
+s3_region: eu-north-1                
+s3_object_key: dumps/{{ dump_src }}  

@@ -1,0 +1,36 @@
+# ansible/roles/docker_setup/tasks/install_aws_cli.yml
+---
+- name: Make sure unzip is installed
+  apt:
+    name: unzip
+    state: present
+  become: true
+
+- name: Install AWS CLI v2
+  get_url:
+    url: "{{ aws_cli_download_url }}"
+    dest: /tmp/awscliv2.zip
+    mode: '0644'
+  become: true
+
+- name: Unpack AWS CLI
+  unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp
+    remote_src: yes
+  become: true
+
+- name: Install AWS CLI
+  command: /tmp/aws/install --update
+  args:
+    creates: /usr/local/bin/aws
+  become: true
+
+- name: Delete temp files AWS CLI
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/awscliv2.zip
+    - /tmp/aws
+  become: true

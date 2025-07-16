@@ -1,0 +1,52 @@
+# ansible/roles/docker_setup/tasks/install_docker.yml
+---
+- name: Update cash APT and install dependencies
+  apt:
+    update_cache: yes
+    name: "{{ docker_packages[0:4] }}"
+    state: present
+  become: true
+
+- name: Add GPG-ключ Docker
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+
+- name: Add APT-repository Docker
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+    state: present
+  become: true
+
+- name: Install Docker CE
+  apt:
+    name: "{{ docker_packages[4:] }}"
+    state: present
+  become: true
+
+- name: Ensure docker.socket is enabled and started
+  become: true
+  ansible.builtin.systemd:
+    name: docker.socket
+    state: started
+    enabled: true
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Start and enable docker.service
+  become: true
+  ansible.builtin.systemd:
+    name: docker.service
+    state: started
+    enabled: true
+
+- name: Run and start Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  become: true

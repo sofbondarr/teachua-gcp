@@ -1,0 +1,115 @@
+---
+- name: Check if Jenkins is already installed
+  become: yes
+  shell: >
+    dpkg-query -W -f='${Status}' jenkins 2>/dev/null | grep -q "install ok installed"
+  register: jenkins_installed
+  changed_when: false
+
+  failed_when: false
+
+- name: "Jenkins is already installed, skipping installation"
+  debug:
+    msg: "Jenkins is present, skipping installation"
+  when: jenkins_installed.rc == 0
+
+- name: Install Jenkins and prerequisites if not present
+  become: yes
+  block:
+    - name: Ensure apt cache is up to date
+      apt:
+        update_cache: yes
+
+    - name: Install prerequisites (gnupg2, ca-certificates)
+      apt:
+        name:
+          - gnupg2
+          - ca-certificates
+        state: present
+
+    - name: Add Jenkins GPG key
+      apt_key:
+        url: "{{ jenkins_repo_key_url }}"
+        state: present
+
+    - name: Add Jenkins apt repository
+      apt_repository:
+        repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+        filename: jenkins
+        state: present
+        update_cache: yes        
+
+    - name: Install Java and Jenkins packages
+      apt:
+        name: "{{ java_packages + [ jenkins_package ] }}"
+        state: present
+
+    - name: Configure Jenkins to listen on custom port
+      lineinfile:
+        path: /etc/default/jenkins
+        regexp: '^HTTP_PORT='
+        line: "HTTP_PORT={{ jenkins_http_port }}"
+      notify: restart jenkins
+
+    - name: Unmask Jenkins service if masked
+      become: yes
+      systemd:
+        name: jenkins
+        masked: no
+
+    - block:
+        - name: Ensure Jenkins service is enabled and started
+          become: yes
+          systemd:
+            name: jenkins
+            state: started
+            enabled: yes
+
+      rescue:
+        - name: Debug: show Jenkins service status
+          become: yes
+          command: systemctl status jenkins.service
+          register: svc_status
+          changed_when: false
+
+        - debug:
+            var: svc_status.stdout_lines
+
+        - name: Debug: show last Jenkins journal entries
+          become: yes
+          command: journalctl -xeu jenkins.service --no-pager | tail -n 30
+          register: svc_journal
+          changed_when: false
+
+        - debug:
+            var: svc_journal.stdout_lines
+
+        - name: Fail the play with a clear message
+          fail:
+            msg: "Jenkins service failed to start. Смотрите логи выше."
+            
+    - name: Ensure Jenkins service is enabled and started
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Wait for Jenkins HTTP port {{ jenkins_http_port }} to become available
+      wait_for:
+        host: "{{ ansible_host | default(inventory_hostname) }}"
+        port: "{{ jenkins_http_port }}"
+        delay: 5
+        timeout: 120
+
+  when: jenkins_installed.rc != 0
+
+- name: Get Jenkins initial admin password
+  become: yes
+  command: cat /var/lib/jenkins/secrets/initialAdminPassword
+  register: jenkins_initial_password
+  changed_when: false
+  failed_when: jenkins_initial_password.rc != 0
+
+- name: Display Jenkins initial admin password
+  debug:
+    msg: "Jenkins initial admin password: {{ jenkins_initial_password.stdout }}"

@@ -1,0 +1,7 @@
+postgres_version: 15.5
+db_type: rds
+init_sql: false
+local_user: vlada
+s3_bucket: myapp-db-dumps-default
+s3_object_key: dumps/dump_file.dump
+s3_region: eu-north-1

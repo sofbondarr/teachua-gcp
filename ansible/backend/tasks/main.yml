@@ -1,0 +1,78 @@
+- name: Ensure deploy group exists
+  group:
+    name: "{{ deploy_group }}"
+    state: present
+  become: yes
+
+- name: Ensure deploy user exists
+  user:
+    name: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    createhome: no
+    shell: /usr/sbin/nologin
+    state: present
+  become: yes
+
+- name: Install JDK and Maven
+  apt:
+    name:
+      - "{{ java_package }}"
+      - "{{ maven_package }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create deployment base and src directories
+  file:
+    path: "{{ deploy_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    mode: '0755'
+    recurse: yes
+  become: yes
+
+- name: Clean existing src directory if present
+  file:
+    path: "{{ deploy_dir }}/src"
+    state: absent
+  become: yes
+
+- name: Clone repository to prepare build
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ deploy_dir }}/src"
+    version: "{{ git_version }}"
+    depth: "{{ git_clone_depth }}"
+    single_branch: yes
+    force: yes
+    update: no
+  become: yes
+
+- name: Ensure ownership of source directory
+  file:
+    path: "{{ deploy_dir }}/src"
+    group: "{{ deploy_group }}"
+    recurse: yes
+  become: yes
+
+- name: Copy environment script
+  copy:
+    src: setenv.sh
+    dest: "{{ deploy_dir }}/src/{{ git_subdir }}/setenv.sh"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Run application via Maven
+  shell: |
+    source setenv.sh
+    mvn spring-boot:run -DskipTests
+  args:
+    # Tell Ansible to run the above in Bash (so `source` is recognized)
+    executable: /bin/bash
+    chdir: "{{ deploy_dir }}/src/{{ git_subdir }}"
+  async: 3600
+  poll: 0
+  become: yes

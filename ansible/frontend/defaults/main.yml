@@ -1,0 +1,9 @@
+sources_local_dir: "/home/vlada/TeachUA-team/frontend"
+build_output_dir: "/home/vlada/TeachUA-team/frontend/build"
+local_user: "vlada"
+deploy_dir: "/var/www/frontend"
+service_name: "nginx"
+nginx_listen_port: 3000
+nginx_server_name: "_"
+index_file: "index.html"
+

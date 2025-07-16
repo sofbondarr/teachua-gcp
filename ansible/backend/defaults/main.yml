@@ -1,0 +1,9 @@
+java_package: openjdk-17-jdk
+maven_package: maven
+app_name: teachua-backend
+git_repo: "https://github.com/ita-social-projects/TeachUA.git"
+git_version: 17bd60e6ecc79bf549c287ad448f20cb164598e2
+git_subdir: ""
+deploy_dir: /opt/{{ app_name }}
+git_clone_depth: 1
+

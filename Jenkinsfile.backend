@@ -1,0 +1,58 @@
+pipeline {
+  agent any
+  triggers { githubPush() }
+
+  environment {
+    DOCKERHUB_NAMESPACE = 'sofbondarr'
+    IMAGE_NAME          = 'backend_teachua'
+    TAG                 = "${env.BUILD_NUMBER}"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git(
+          url: 'git@github.com:sofbondarr/teachua-gcp.git',
+          branch: 'develop',
+          credentialsId: 'git'
+        )
+      }
+    }
+
+    stage('Build') {
+      steps {
+        dir('backend') {
+          bat "docker build -t ${IMAGE_NAME}:${TAG} ."
+        }
+      }
+    }
+
+    stage('Login to Docker Hub') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'dockerhub-credentials',
+          usernameVariable: 'DH_USER',
+          passwordVariable: 'DH_PASS'
+        )]) {
+          // избегаем интерактивного запроса
+          bat 'echo %DH_PASS% | docker login --username %DH_USER% --password-stdin'
+        }
+      }
+    }
+
+    stage('Tag & Push') {
+      steps {
+        bat """
+          docker tag ${IMAGE_NAME}:${TAG} docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+          docker push docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+        """
+      }
+    }
+  }
+
+  post {
+    always {
+      echo "Backend image pushed: docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}"
+    }
+  }
+}

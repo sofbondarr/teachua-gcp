@@ -1,0 +1,26 @@
+# 1. Переконатись, що локальний дамп існує
+- name: Fail if dump file is missing
+  stat:
+    path: "{{ role_path }}/files/{{ dump_src }}"
+  register: dump_local
+  delegate_to: localhost
+
+- name: Abort when dump file not found
+  fail:
+    msg: "Dump file {{ dump_src }} not found in files/"
+  when: not dump_local.stat.exists
+  delegate_to: localhost
+
+# 2. Завантажити дамп у S3  (операція виконується локально)
+- name: Upload dump to S3
+  amazon.aws.aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: "{{ s3_object_key }}"
+    src: "{{ role_path }}/files/{{ dump_src }}"
+    mode: put
+    region: "{{ s3_region }}"
+  delegate_to: localhost
+  environment:
+    AWS_ACCESS_KEY_ID:     "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+    AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    AWS_DEFAULT_REGION:    "{{ lookup('env','AWS_DEFAULT_REGION') }}"

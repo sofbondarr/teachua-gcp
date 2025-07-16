@@ -1,0 +1,22 @@
+- name: Update apt cache        
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install haproxy          
+  apt:
+    name: haproxy
+    state: present
+
+- name: Deploy haproxy.cfg from template  
+  template:
+    src: haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+    mode: '0644'
+  notify: Reload HAProxy
+
+- name: Ensure haproxy is started & enabled  
+  service:
+    name: haproxy
+    state: started
+    enabled: yes

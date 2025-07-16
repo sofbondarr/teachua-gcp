@@ -1,0 +1,53 @@
+- name: Wait until RDS is available
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: 5432
+    timeout: 300
+  become: false
+  become_user: "{{ local_user | default('ubuntu') }}"
+
+- name: Create user on RDS
+  community.postgresql.postgresql_user:
+    name: postgres                    # db_user
+    password: postgres               # db_password
+    role_attr_flags: "LOGIN"
+    ssl_mode: require
+    login_host: "{{ ansible_host }}"
+    login_user: postgres                # db_username_admin
+    login_password: postgres            # db_password_admin
+    port: 5432
+  become: false
+  become_user: "{{ local_user | default('ubuntu') }}"
+
+
+- name: Create database on RDS
+  community.postgresql.postgresql_db:
+    name: postgres                   # db_name
+    owner: postgres                  # db_user
+    login_host: "{{ ansible_host }}"
+    login_user: postgres                # db_username_admin
+    login_password: postgres            # db_password_admin
+    port: 5432
+  become: false
+  become_user: "{{ local_user | default('ubuntu') }}"
+  
+- name: Download dump from S3
+  amazon.aws.s3_object:
+    bucket: "{{ s3_bucket }}"
+    object: "{{ s3_object_key }}"
+    dest: "/tmp/{{ s3_object_key | basename }}"
+  when: dump_src | default(false)
+  environment:
+    AWS_ACCESS_KEY_ID:     "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+    AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    AWS_DEFAULT_REGION:    "{{ lookup('env','AWS_DEFAULT_REGION') }}"
+
+- name: Load dump into RDS from local file
+  community.postgresql.postgresql_copy:
+    db: postgres
+    login_host: "{{ ansible_host }}"
+    login_user: postgres
+    login_password: postgres
+    port: 5432
+    src: "/tmp/{{ s3_object_key | basename }}"
+  when: dump_src | default(false)
