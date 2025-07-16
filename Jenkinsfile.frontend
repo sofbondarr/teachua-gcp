@@ -13,7 +13,7 @@ pipeline {
       steps {
         git(
           url: 'git@github.com:sofbondarr/teachua-gcp.git',
-          branch: 'develop',
+          branch: 'main',
           credentialsId: 'git'
         )
       }
