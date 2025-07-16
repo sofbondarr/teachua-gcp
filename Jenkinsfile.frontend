@@ -11,18 +11,14 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git(
-          url: 'git@github.com:sofbondarr/teachua-gcp.git',
-          branch: 'main',
-          credentialsId: 'git'
-        )
+        checkout scm
       }
     }
 
     stage('Build') {
       steps {
         dir('frontend') {
-          bat "docker build -t ${IMAGE_NAME}:${TAG} ."
+          sh "docker build -t ${IMAGE_NAME}:${TAG} ."
         }
       }
     }
@@ -34,14 +30,14 @@ pipeline {
           usernameVariable: 'DH_USER',
           passwordVariable: 'DH_PASS'
         )]) {
-          bat 'echo %DH_PASS% | docker login --username %DH_USER% --password-stdin'
+          sh 'echo "$DH_PASS" | docker login --username "$DH_USER" --password-stdin'
         }
       }
     }
 
     stage('Tag & Push') {
       steps {
-        bat """
+        sh """
           docker tag ${IMAGE_NAME}:${TAG} docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
           docker push docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
         """
