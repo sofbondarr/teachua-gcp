@@ -1,0 +1,14 @@
+# templates/backend-config-backend.yaml
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: {{ .Values.backend.name }}-backend-config # e.g., teachua-backend-backend-config
+spec:
+  healthCheck:
+    type: HTTP
+    requestPath: {{ .Values.backend.healthCheckPath }} # This will come from values.yaml (e.g., "/")
+    port: {{ .Values.backend.port }} # 8080 for your backend
+    checkIntervalSec: 30 # How often to check (seconds)
+    timeoutSec: 5        # How long to wait for a response (seconds)
+    healthyThreshold: 2  # Number of consecutive successful checks for healthy
+    unhealthyThreshold: 5 # Number of consecutive failed checks for unhealthy
