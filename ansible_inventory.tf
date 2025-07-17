@@ -1,11 +1,11 @@
-terraform {
-  required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = "2.4.0"
-    }
-  }
-}
+# terraform {
+#   required_providers {
+#     local = {
+#       source  = "hashicorp/local"
+#       version = "2.4.0"
+#     }
+#   }
+# }
 
 locals {
   # Получаем map имя→IP из модуля web
