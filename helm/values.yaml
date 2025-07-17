@@ -1,0 +1,57 @@
+# teachua-app/values.yaml
+backend:
+  name: teachua-backend
+  replicas: 1
+  image:
+    repository: public.ecr.aws/p7n1i7z3/teachua/backend
+    tag: latest
+  port: 8080
+  env:
+    datasourceUrl: jdbc:postgresql://postgres-service:5432/postgres
+    baseUri: /
+    prodBaseUri: /
+    publicUrl: /
+    prodPublicUrl: /
+  healthCheckPath: "/api/cities"
+
+frontend:
+  name: teachua-frontend
+  replicas: 2
+  image:
+    repository: public.ecr.aws/p7n1i7z3/teachua/frontend
+    tag: latest
+  port: 3000
+  env:
+    reactAppRootServer: http://34.111.112.246
+  healthCheckPath: "/"
+
+postgres:
+  name: postgres-db
+  image:
+    repository: public.ecr.aws/p7n1i7z3/teachua/database
+    tag: latest
+  port: 5432
+  service:
+    name: postgres-service
+  env:
+    user: postgres
+    password: postgres
+    database: postgres
+
+ingress:
+  enabled: true
+# className: gce
+# host: teachua.local
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "teachua-ip"
+    kubernetes.io/ingress.allow-http: "true"
+
+jenkins:
+  image: jenkins/jenkins:lts
+  replicas: 1
+  serviceType: ClusterIP
+
+gcp:
+  project: teachua-465809
+  region: europe-southwest1-a

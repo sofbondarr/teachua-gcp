@@ -1,0 +1,34 @@
+# datadog-values.yaml
+
+# Datadog API key and site configuration
+datadog:
+  apiKeyExistingSecret: datadog-api-key
+  apiKeyExistingSecretK8sKey: api-key
+  site: "datadoghq.com" # <<<--- CHANGE THIS LINE to EU SITE ---<<<
+
+# A recognizable name for your Kubernetes cluster in the Datadog UI
+clusterName: "teachua-cluster"
+
+# Enable collection of Kubernetes state metrics, essential for cluster-level insights
+kubeStateMetricsCore:
+  enabled: true
+
+# Target operating system for the Datadog Agent (almost always linux for K8s nodes)
+targetSystem: "linux"
+
+# Agent configurations
+agent:
+  # Enable APM for distributed tracing if your applications are instrumented
+  apm:
+    enabled: true
+  # Enable log collection from all containers
+  log:
+    enabled: true
+    logsCollectionEnabled: true
+
+# Cluster Agent configurations (for cluster-level metadata, auto-discovery, etc.)
+clusterAgent:
+  enabled: true
+  admissionController:
+    enabled: true
+    mutateUnlabelled: false
