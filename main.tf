@@ -34,7 +34,7 @@ module "cluster" {
 
 module "helm" {
   source           = "./modules/helm"
-  external_ip      = module.ip.ip_address
+  external_ip      = module.network.ip_address
   release_name     = local.cfg.release_name
   chart_repository = local.cfg.chart_repository
   chart_name       = local.cfg.chart_name
