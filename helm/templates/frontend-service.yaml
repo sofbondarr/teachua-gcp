@@ -15,3 +15,4 @@ spec:
     - port: {{ .Values.frontend.port }}
       targetPort: {{ .Values.frontend.port }}
   type: LoadBalancer
+  loadBalancerIP: {{ .Values.gcp.external_ip }} 
