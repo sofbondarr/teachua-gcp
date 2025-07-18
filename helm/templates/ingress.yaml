@@ -1,0 +1,30 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: teachua-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce" # Still useful to explicitly use GCE controller
+    kubernetes.io/ingress.global-static-ip-name: "teachua-ip" # Link to your reserved static IP
+    kubernetes.io/ingress.allow-http: "true" # Explicitly allow HTTP (essential for IP-only without custom certs)
+spec:
+  ingressClassName: gce # Preferred way to specify GCE Ingress controller
+  rules:
+  - http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.backend.name }}
+            port:
+              number: {{ .Values.backend.port }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.frontend.name }}
+            port:
+              number: {{ .Values.frontend.port }}
+  # No 'tls:' section here
+{{- end }}

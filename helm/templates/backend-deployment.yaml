@@ -1,0 +1,33 @@
+# teachua-app/templates/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    app: {{ .Values.backend.name }}
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.backend.name }}
+    spec:
+      containers:
+      - name: backend
+        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+        env:
+        - name: DEV2_DATASOURCE_URL
+          value: {{ .Values.backend.env.datasourceUrl }}
+        - name: BASE_URI
+          value: {{ .Values.backend.env.baseUri }}
+        - name: PROD_BASE_URI
+          value: {{ .Values.backend.env.prodBaseUri }}
+        - name: PUBLIC_URL
+          value: {{ .Values.backend.env.publicUrl }}
+        - name: PROD_PUBLIC_URL
+          value: {{ .Values.backend.env.prodPublicUrl }}
