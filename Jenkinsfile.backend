@@ -18,7 +18,13 @@ pipeline {
     stage('Build') {
       steps {
         dir('backend') {
-          sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+          script {
+            if (isUnix()) {
+              sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+            } else {
+              bat "docker build -t ${IMAGE_NAME}:${TAG} ."
+            }
+          }
         }
       }
     }
@@ -30,18 +36,37 @@ pipeline {
           usernameVariable: 'DH_USER',
           passwordVariable: 'DH_PASS'
         )]) {
-          // Без интерактивного ввода пароля
-          sh 'echo "$DH_PASS" | docker login --username "$DH_USER" --password-stdin'
+          script {
+            if (isUnix()) {
+              // Linux/Unix approach
+              sh 'echo "$DH_PASS" | docker login --username "$DH_USER" --password-stdin'
+            } else {
+              // Windows approach - use PowerShell for secure password handling
+              bat '''
+                @echo off
+                echo %DH_PASS%| docker login --username %DH_USER% --password-stdin
+              '''
+            }
+          }
         }
       }
     }
 
     stage('Tag & Push') {
       steps {
-        sh """
-          docker tag ${IMAGE_NAME}:${TAG} docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
-          docker push docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
-        """
+        script {
+          if (isUnix()) {
+            sh """
+              docker tag ${IMAGE_NAME}:${TAG} docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+              docker push docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+            """
+          } else {
+            bat """
+              docker tag ${IMAGE_NAME}:${TAG} docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+              docker push docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${TAG}
+            """
+          }
+        }
       }
     }
   }
