@@ -3,7 +3,7 @@ pipeline {
   triggers { githubPush() }
 
   environment {
-    DOCKERHUB_NAMESPACE = 'sofbondarr'
+    DOCKERHUB_NAMESPACE = 'vladushaaaa'
     IMAGE_NAME          = 'backend_teachua'
     TAG                 = "${env.BUILD_NUMBER}"
   }
