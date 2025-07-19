@@ -1,0 +1,18 @@
+# teachua-app/templates/backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    app: {{ .Values.backend.name }}
+  annotations: # <<< ADD THIS ANNOTATION BLOCK
+    cloud.google.com/backend-config: '{"default": "{{ .Values.backend.name }}-backend-config"}'
+
+spec:
+  selector:
+    app: {{ .Values.backend.name }}
+  ports:
+    - port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.gcp.external_ip }} 

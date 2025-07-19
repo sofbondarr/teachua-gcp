@@ -1,10 +1,8 @@
-# datadog-values.yaml
-
 # Datadog API key and site configuration
 datadog:
   apiKeyExistingSecret: datadog-api-key
   apiKeyExistingSecretK8sKey: api-key
-  site: "datadoghq.com" # <<<--- CHANGE THIS LINE to EU SITE ---<<<
+  site: "datadoghq.eu" 
 
 # A recognizable name for your Kubernetes cluster in the Datadog UI
 clusterName: "teachua-cluster"
