@@ -1,17 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: jenkins
+  name: {{ .Values.jenkins.name }}
   labels:
-    app: jenkins
+    app: {{ .Values.jenkins.name }}
+  annotations: # <<< ADD THIS ANNOTATION BLOCK
+    cloud.google.com/backend-config: '{"default": "{{ .Values.jenkins.name }}-backend-config"}'
 spec:
   type: ClusterIP
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: {{ .Values.jenkins.port }}
+      targetPort: {{ .Values.jenkins.port }}
       name: http
     - port: 50000
       targetPort: 50000
       name: agent
   selector:
-    app: jenkins
+    app: {{ .Values.jenkins.name }}

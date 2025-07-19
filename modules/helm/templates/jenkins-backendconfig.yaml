@@ -1,0 +1,11 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: {{ .Values.jenkins.name }}-backend-config
+spec:
+  healthCheck:
+    requestPath: /login    # Jenkins login page always returns 200
+    port: {{ .Values.jenkins.port }}
+    timeoutSec: 5
+    unhealthyThreshold: 3
+    healthyThreshold: 2

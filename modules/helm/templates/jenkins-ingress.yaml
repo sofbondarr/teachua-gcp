@@ -3,16 +3,19 @@ kind: Ingress
 metadata:
   name: jenkins
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "jenkins-ip"
+    kubernetes.io/ingress.allow-http: "true"
+    cloud.google.com/backend-config: '{"default": "jenkins-backendconfig"}'
 spec:
+  ingressClassName: gce
   rules:
-    - host: jenkins.local
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: jenkins
+                name: {{ .Values.jenkins.name }}
                 port:
-                  number: 8080
+                  number: {{ .Values.jenkins.port }}
